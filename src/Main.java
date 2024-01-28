@@ -15,13 +15,6 @@ public class Main {
             List<String> parsed = Parser.parseInput(input);
 
             cmdObj.runCommand(parsed);
-
-
         }
-
-
-
-
-
     }
 }
