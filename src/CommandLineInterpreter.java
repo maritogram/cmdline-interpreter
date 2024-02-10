@@ -3,6 +3,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.lang.Runtime;
 
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -118,6 +119,22 @@ public class CommandLineInterpreter {
                 parameters = " path/file"
         )
         private void run(String pathFile){
+            try{
+                ProcessBuilder processBuilder = new ProcessBuilder(pathFile);
+
+                processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+                processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
+                processBuilder.redirectInput(ProcessBuilder.Redirect.INHERIT);
+
+                Process process = processBuilder.start();
+
+                process.waitFor();
+
+
+            } catch (Exception e){
+                System.out.println(e.getMessage());
+
+            }
 
         }
 
@@ -128,6 +145,8 @@ public class CommandLineInterpreter {
         private void remove(String pathFile){
 
         }
+
+
 
         @commandInfo(
                 description = "renames the file or directory name old to new",
