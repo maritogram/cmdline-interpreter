@@ -1,9 +1,10 @@
+import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.*;
 import java.util.*;
-import java.lang.Runtime;
 
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -95,6 +96,16 @@ public class CommandLineInterpreter {
                 parameters = ""
         )
         private void list(){
+            Path dir = Paths.get("");
+
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
+                for (Path file: stream) {
+                    System.out.println(file.getFileName());
+                }
+            } catch (IOException | DirectoryIteratorException e) {
+                System.out.println(e);
+            }
+
 
         }
 
@@ -103,6 +114,17 @@ public class CommandLineInterpreter {
                 parameters = " path"
         )
         private void list(String path){
+
+            Path dir = Paths.get(path);
+
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
+                for (Path file: stream) {
+                    System.out.println(file.getFileName());
+                }
+            } catch (IOException | DirectoryIteratorException e) {
+
+                System.out.println(e);
+            }
 
         }
 
