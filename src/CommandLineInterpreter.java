@@ -167,7 +167,7 @@ public class CommandLineInterpreter {
                 //Step 4
                 if(!(path.startsWith(".") || path.startsWith(".."))){
                     //Step 5
-                    if(Files.exists(Path.of(curDir.concat(separator).concat(path))))
+                    if(Files.isDirectory(Path.of(curDir.concat(separator).concat(path))))
                         curpath.append(path);
                     else {
                         System.out.println("Directory does not exist.");
@@ -203,6 +203,7 @@ public class CommandLineInterpreter {
             }
 
             curDir = String.join(separator,ok);
+            System.setProperty("user.dir", curDir);
             System.out.printf("Current directory is now: %s\n", curDir);
 
         }
@@ -235,7 +236,22 @@ public class CommandLineInterpreter {
                 description = "removes a file in path",
                 parameters = " path/file"
         )
-        private void remove(String pathFile){
+        private void remove(String pathFile) {
+
+            Path path = Path.of(curDir.concat(separator).concat(pathFile));
+
+            try {
+                Files.delete(path);
+            } catch (NoSuchFileException x) {
+                System.out.format("%s: no such" + " file or directory%n", path);
+            } catch (DirectoryNotEmptyException x) {
+                System.out.format("%s not empty%n", path);
+            } catch (IOException x) {
+                // File permission problems are caught here.
+                System.out.println(x);
+            }
+
+
 
         }
 
@@ -245,7 +261,25 @@ public class CommandLineInterpreter {
                 description = "renames the file or directory name old to new",
                 parameters = " old new"
         )
-        private void rename(String old, String now){
+        private void rename(String old, String now) {
+            Path source = Path.of(curDir.concat(separator).concat(old));
+            Path target = Path.of(curDir.concat(separator).concat(now));
+
+            try {
+                Files.copy(source, target);
+                System.out.printf("File %s has been renamed to %s\n", old, now);
+                remove(old);
+            } catch (NoSuchFileException x) {
+                System.out.format("%s: no such" + " file or directory%n", source);
+            } catch (DirectoryNotEmptyException x) {
+                System.out.format("%s not empty%n", source);
+            } catch (IOException x) {
+                // File permission problems are caught here.
+                System.out.println(x);
+            }
+
+
+
 
         }
 
