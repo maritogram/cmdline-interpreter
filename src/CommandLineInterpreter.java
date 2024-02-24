@@ -17,6 +17,8 @@ import java.util.*;
 
 public class CommandLineInterpreter {
     private final Map<String, List<Method>> commandsMap = new HashMap<>();
+    private String curDir = Paths.get("").toAbsolutePath().toString();
+    private final String  separator = FileSystems.getDefault().getSeparator();
 
     public CommandLineInterpreter(){
         List<Method> methods = List.of((CommandLineInterpreter.class.getDeclaredMethods()));
@@ -96,7 +98,7 @@ public class CommandLineInterpreter {
                 parameters = ""
         )
         private void list(){
-            Path dir = Paths.get("");
+            Path dir = Paths.get(curDir);
 
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
                 for (Path file: stream) {
@@ -115,9 +117,26 @@ public class CommandLineInterpreter {
         )
         private void list(String path){
 
-            Path dir = Paths.get(path);
+            String pathBuffer;
 
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
+            if(path.startsWith(separator)){
+                if (!Files.exists(Path.of(path))){
+                    System.out.println("Invalid path.");
+                    return;
+                }
+                else
+                    pathBuffer = path;
+            } else {
+                if (!Files.exists(Path.of(curDir.concat(separator).concat(path)))){
+                    System.out.println("Invalid path.");
+                    return;
+                }
+                else
+                    pathBuffer = curDir.concat(separator).concat(path);
+            }
+
+
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(Path.of(pathBuffer))) {
                 for (Path file: stream) {
                     System.out.println(file.getFileName());
                 }
@@ -133,6 +152,58 @@ public class CommandLineInterpreter {
                 parameters = " path"
         )
         private void chdir(String path){
+
+            StringBuffer curpath = new StringBuffer(200);
+
+            // Steps 1 and 2, from man pages of cd (simplified)
+            if(path.isEmpty())
+                return;
+
+            // Step 3
+            if(path.startsWith(separator))
+                curpath.append(path);
+            else{
+
+                //Step 4
+                if(!(path.startsWith(".") || path.startsWith(".."))){
+                    //Step 5
+                    if(Files.exists(Path.of(curDir.concat(separator).concat(path))))
+                        curpath.append(path);
+                    else {
+                        System.out.println("Directory does not exist.");
+                        return;
+                    }
+
+                } else {
+                    //Step 6
+                    curpath.append(path);
+                }
+            }
+
+            // Step 7
+            if(!curpath.toString().startsWith(separator)){
+                String buf = curpath.toString();
+                curpath.delete(0, curpath.length());
+                if(!curDir.endsWith(separator))
+                    curpath.append(curDir.concat(separator).concat(buf));
+                else
+                    curpath.append(curDir.concat(buf));
+            }
+
+            String[] dirs = curpath.toString().split(separator);
+            ArrayList<String> ok = new ArrayList<>();
+
+            for(int i = 0; i < dirs.length; i++){
+                if(Objects.equals(dirs[i], "."))
+                    continue;
+                else if(Objects.equals(dirs[i], ".."))
+                    ok.remove(i - 1);
+                else
+                    ok.add(dirs[i]);
+            }
+
+            curDir = String.join(separator,ok);
+            System.out.printf("Current directory is now: %s\n", curDir);
 
         }
 
